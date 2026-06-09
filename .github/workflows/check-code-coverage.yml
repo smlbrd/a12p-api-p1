@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  coverage-check:
+  check-code-coverage:
     runs-on: ubuntu-latest
 
     steps:
