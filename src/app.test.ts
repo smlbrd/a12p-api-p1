@@ -13,6 +13,13 @@ describe("/health", () => {
     })
 })
 
+describe("Global 404 Handler", () => {
+    test("should return a 404 status for non-existent routes", async () => {
+        const res = await app.request("/this-route-does-not-exist");
+        expect(res.status).toBe(404);
+    })
+})
+
 describe("GET /coins", () => {
     beforeEach(async () => {
         await db.delete(coins);
