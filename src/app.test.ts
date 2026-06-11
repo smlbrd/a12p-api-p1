@@ -16,6 +16,7 @@ describe("/health", () => {
 describe("Global 404 Handler", () => {
     test("should return a 404 status for non-existent routes", async () => {
         const res = await app.request("/this-route-does-not-exist");
+
         expect(res.status).toBe(404);
     })
 })
@@ -44,6 +45,7 @@ describe("GET /coins", () => {
         expect(res.status).toBe(200)
 
         const data = await res.json();
+
         expect(data).toHaveLength(coinsData.length);
         expect(data).toMatchObject(coinsData);
     })
@@ -84,6 +86,21 @@ describe("POST /coins", () => {
             id: expect.any(String),
             ...newCoin
         });
+    })
+
+    test("should return a 409 error if the coin name already exists", async () => {
+        await jsonPost("/coins", { name: "Duplicate Coin" })
+
+        const res = await jsonPost("/coins", { name: "Duplicate Coin" })
+
+        expect(res.status).toBe(409)
+
+        const data = await res.json();
+
+        expect(data).toEqual({
+            success: false,
+            error: "COIN_ALREADY_EXISTS"
+        })
     })
 
     test("should return a 400 error if name missing", async () => {
