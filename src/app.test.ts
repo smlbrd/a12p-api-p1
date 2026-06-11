@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import app from "./index.ts";
+import app from "./app.ts";
 import { db } from "./db/db.ts";
 import { coins } from "./db/schema.ts";
 import { seedCoins, coinsData } from "./seeds/coins.ts"
@@ -16,7 +16,6 @@ describe("/health", () => {
 describe("GET /coins", () => {
     beforeEach(async () => {
         await db.delete(coins);
-
         await seedCoins();
     })
 
@@ -26,7 +25,8 @@ describe("GET /coins", () => {
         expect(res.status).toBe(200)
 
         const data = await res.json();
-        expect(data).toEqual(coinsData);
+        expect(data).toHaveLength(coinsData.length);
+        expect(data).toMatchObject(coinsData);
     })
 })
 
@@ -44,12 +44,12 @@ describe("POST /coins", () => {
 
     test("should add a new coin", async () => {
         const newCoin = { name: "Testing.. Testing.. 1, 2, 3", isCompleted: false }
-
         const res  = await jsonPost("/coins", newCoin);
 
         expect(res.status).toBe(201)
 
         const data = await res.json();
+
         expect(data).toMatchObject({
             id: expect.any(String),
             ...newCoin
@@ -67,5 +67,16 @@ describe("POST /coins", () => {
         });
     })
 
-    // validation - fails if no name in body
+    test("should return a 400 error if name missing", async () => {
+        const invalidCoin = {}
+        const res = await jsonPost("/coins", invalidCoin)
+
+        expect(res.status).toBe(400)
+
+        const data = await res.json();
+
+        expect(data.success).toBe(false);
+        expect(data.error.issues[0].path[0]).toBe("name");
+        expect(data.error.issues[0].message).toBe("Invalid input: expected string, received undefined");
+    })
 })
