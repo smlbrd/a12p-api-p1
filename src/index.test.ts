@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import app from "./index.ts";
 import { db } from "./db/db.ts";
 import { coins } from "./db/schema.ts";
-import { coinsData } from "./fixtures/coins.fixture.ts"
+import { seedCoins, coinsData } from "./seeds/coins.ts"
 
 describe("/health", () => {
     test("should return a 200 status", async () => {
@@ -15,7 +15,8 @@ describe("/health", () => {
 describe("/coins", () => {
     beforeEach(async () => {
         await db.delete(coins);
-        await db.insert(coins).values(coinsData);
+
+        await seedCoins();
     })
 
     test("should return a list of all coins", async () => {

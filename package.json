@@ -6,7 +6,8 @@
     "dev": "tsx watch src/index.ts",
     "lint": "eslint .",
     "test": "vitest run",
-    "prepare": "husky"
+    "prepare": "husky",
+    "seed": "tsx src/db/run-seed.ts"
   },
   "lint-staged": {
     "*.{ts,js}": [
