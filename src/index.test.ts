@@ -30,6 +30,13 @@ describe("GET /coins", () => {
     })
 })
 
+const jsonPost = (path: string, body: unknown) =>
+    app.request(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
+
 describe("POST /coins", () => {
     beforeEach(async () => {
         await db.delete(coins)
@@ -38,11 +45,7 @@ describe("POST /coins", () => {
     test("should add a new coin", async () => {
         const newCoin = { name: "Testing.. Testing.. 1, 2, 3", isCompleted: false }
 
-        const res = await app.request("/coins", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newCoin)
-        });
+        const res  = await jsonPost("/coins", newCoin);
 
         expect(res.status).toBe(201)
 
