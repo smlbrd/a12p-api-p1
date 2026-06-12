@@ -1,9 +1,9 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
+import {afterEach, beforeEach, describe, expect, test, vi} from "vitest"
 import app from "./app.ts"
-import { db } from "./db/db.ts"
-import { coins } from "./db/schema.ts"
-import { coinsData, seedCoins } from "./seeds/coins.ts"
-import { eq } from "drizzle-orm"
+import {db} from "./db/db.ts"
+import {coins} from "./db/schema.ts"
+import {coinsData, seedCoins} from "./seeds/coins.ts"
+import {eq} from "drizzle-orm"
 
 const jsonPost = (path: string, body: unknown) =>
   app.request(path, {
@@ -78,8 +78,8 @@ describe("POST /coins", () => {
 
   test("should add a new coin", async () => {
     const newCoin = { name: "Testing.. Testing.. 1, 2, 3", isCompleted: false }
-    const res = await jsonPost("/coins", newCoin)
 
+    const res = await jsonPost("/coins", newCoin)
     expect(res.status).toBe(201)
 
     const data = await res.json()
@@ -89,7 +89,6 @@ describe("POST /coins", () => {
     })
 
     const [dbCoin] = await db.select().from(coins).where(eq(coins.id, data.id)).limit(1)
-
     expect(dbCoin).toMatchObject({
       id: expect.any(String),
       ...newCoin
@@ -98,8 +97,8 @@ describe("POST /coins", () => {
 
   test("should return a 409 error if the coin name already exists", async () => {
     await jsonPost("/coins", { name: "Duplicate Coin" })
-    const res = await jsonPost("/coins", { name: "Duplicate Coin" })
 
+    const res = await jsonPost("/coins", { name: "Duplicate Coin" })
     expect(res.status).toBe(409)
 
     const data = await res.json()
@@ -129,6 +128,12 @@ describe("POST /coins", () => {
       expectedMessage: "Invalid input: expected string, received number"
     },
     {
+      reason: "name is not alphanumeric characters",
+      payload: { name: "!?%^&" },
+      expectedPath: "name",
+      expectedMessage: "Please use valid characters only: a-z A-Z 0-9 , . !"
+    },
+    {
       reason: "isCompleted is not a boolean",
       payload: { name: "Testing.. Testing.. 1, 2, 3", isCompleted: "true" },
       expectedPath: "isCompleted"
@@ -138,7 +143,6 @@ describe("POST /coins", () => {
     expect(res.status).toBe(400)
 
     const data = await res.json()
-
     expect(data.success).toBe(false)
     expect(data.error.issues[0].path[0]).toBe(expectedPath)
 
@@ -153,7 +157,6 @@ describe("POST /coins", () => {
       headers: { "Content-Type": "application/json" },
       body: "{ invalid-json: "
     })
-
     expect(res.status).toBe(400)
 
     const data = await res.json()

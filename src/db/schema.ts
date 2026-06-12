@@ -12,6 +12,13 @@ export const selectCoinSchema = createSelectSchema(coins)
 export type Coin = z.infer<typeof selectCoinSchema>
 
 export const insertCoinSchema = createInsertSchema(coins, {
-  name: z.string().trim().min(1, { message: "Name cannot be empty" })
+  name: z
+    .string()
+    .trim()
+    .min(1, { message: "Name cannot be empty" })
+    .max(255, { message: "Name cannot exceed 255 characters" })
+    .regex(/^[a-zA-Z0-9 ,.!]+$/, {
+      message: "Please use valid characters only: a-z A-Z 0-9 , . !"
+    })
 })
 export type NewCoin = z.infer<typeof insertCoinSchema>
