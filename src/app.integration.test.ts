@@ -233,3 +233,17 @@ describe("POST /coins", () => {
     })
   })
 })
+
+describe("PATCH /coins", () => {
+  test("should change the name of a coin", async () => {})
+
+  // should update the completion status of a coin
+  // submitting patch with identical data returns 204
+
+  // should update the duties linked to a coin
+  // duties: [] should clear linked duties for a coin
+  // gracefully handles duplication (e.g. currently duties 5, 7, 10, patched to 7, 10, 11)
+
+  // patching nonexistent coin returns 400 bad req
+  // linking coin to nonexistent duty returns 400 bad req
+})
