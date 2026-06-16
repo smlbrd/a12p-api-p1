@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import app from "./app.ts"
 import { db } from "./db/db.ts"
-import { coins, coinsToDuties, duties } from "./db/schema.ts"
+import { coins, coinsToDuties, duties, type NewCoin, type NewCoinWithDuties } from "./db/schema.ts"
 import { COIN_IDS, coinsData, DUTY_IDS, seedCoinsAndDuties } from "./db/seeds/seedData.ts"
 import { eq } from "drizzle-orm"
 import { Hono } from "hono"
 import { errorHandler } from "./middleware/errorHandler.ts"
 import { z } from "zod"
 
-const jsonPost = (path: string, body: unknown) =>
+const jsonReq = (method: "POST" | "PATCH", path: string, body: unknown) =>
   app.request(path, {
-    method: "POST",
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   })
@@ -145,9 +145,9 @@ describe("POST /coins", () => {
   })
 
   test("should add a new coin without duties", async () => {
-    const newCoin = { name: "Testing.. Testing.. 1, 2, 3", isCompleted: false }
+    const newCoin: NewCoin = { name: "Testing.. Testing.. 1, 2, 3", isCompleted: false }
 
-    const res = await jsonPost("/coins", newCoin)
+    const res = await jsonReq("POST", "/coins", newCoin)
     expect(res.status).toBe(201)
 
     const data = await res.json()
@@ -173,20 +173,16 @@ describe("POST /coins", () => {
       ])
       .returning()
 
-    const duty1 = insertedDuties[0]
-    const duty2 = insertedDuties[1]
+    const duty1 = insertedDuties[0]!
+    const duty2 = insertedDuties[1]!
 
-    if (!duty1 || !duty2) {
-      throw new Error("Test setup failed: Seeded duties are missing.")
-    }
-
-    const newCoinPayload = {
+    const newCoinPayload: NewCoinWithDuties = {
       name: "Dutiful Coin",
       isCompleted: false,
       dutyIds: [duty1.id, duty2.id]
     }
 
-    const res = await jsonPost("/coins", newCoinPayload)
+    const res = await jsonReq("POST", "/coins", newCoinPayload)
     expect(res.status).toBe(201)
 
     const data = await res.json()
@@ -205,9 +201,9 @@ describe("POST /coins", () => {
   })
 
   test("should return a 409 error if the coin name already exists", async () => {
-    await jsonPost("/coins", { name: "Duplicate Coin" })
+    await jsonReq("POST", "/coins", { name: "Duplicate Coin" })
 
-    const res = await jsonPost("/coins", { name: "Duplicate Coin" })
+    const res = await jsonReq("POST", "/coins", { name: "Duplicate Coin" })
     expect(res.status).toBe(409)
 
     const data = await res.json()
@@ -234,11 +230,37 @@ describe("POST /coins", () => {
   })
 })
 
-describe("PATCH /coins", () => {
-  test("should change the name of a coin", async () => {})
+describe("PATCH /coins/:id", () => {
+  test("should change the name of an existing coin", async () => {
+    const testCoin: NewCoin = {
+      name: "Testing.. Testing.. 1, 2, 3"
+    }
+
+    const insertedRows = await db.insert(coins).values(testCoin).returning()
+    const insertedCoin = insertedRows[0]!
+
+    const updateBody = { name: "Testing.. Testing.. 4, 5, 6" }
+
+    const updateRes = await jsonReq("PATCH", `/coins/${insertedCoin.id}`, updateBody)
+    expect(updateRes.status).toBe(200)
+
+    const updatedData = await updateRes.json()
+    expect(updatedData).toMatchObject({
+      id: insertedCoin.id,
+      name: updateBody.name
+    })
+
+    const [dbCoin] = await db.select().from(coins).where(eq(coins.id, insertedCoin.id)).limit(1)
+    expect(dbCoin!).toMatchObject({
+      id: insertedCoin.id,
+      name: updateBody.name
+    })
+  })
 
   // should update the completion status of a coin
   // submitting patch with identical data returns 204
+
+  // validation check - name of "" fails validation 400 req
 
   // should update the duties linked to a coin
   // duties: [] should clear linked duties for a coin

@@ -2,8 +2,9 @@ import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
 import { HTTPException } from "hono/http-exception"
 import { z } from "zod"
-import { insertCoinWithDutiesSchema } from "../db/schema.ts"
-import { createCoin, getAllCoins, getCoinWithDuties } from "../services/coinService.ts"
+import { insertCoinWithDutiesSchema, patchCoinWithDutiesSchema } from "../db/schema.ts"
+import { createCoin, getAllCoins, getCoinWithDuties, updateCoin } from "../services/coinService.ts"
+import { db } from "../db/db.ts"
 
 const coinRoutes = new Hono()
 
@@ -16,7 +17,7 @@ coinRoutes.get("/", async (c) => c.json(await getAllCoins()))
 
 coinRoutes.get("/:id", async (c) => {
   const id = c.req.param("id")
-  const coinWithDuties = await getCoinWithDuties(id)
+  const coinWithDuties = await getCoinWithDuties(db, id)
 
   if (!coinWithDuties) {
     return c.json({ success: false, error: "COIN_NOT_FOUND" }, 404)
@@ -34,6 +35,14 @@ coinRoutes.post("/", validateJson(insertCoinWithDutiesSchema), async (c) => {
   }
 
   return c.json(newCoinWithDuties, 201)
+})
+
+coinRoutes.patch("/:id", validateJson(patchCoinWithDutiesSchema), async (c) => {
+  const id = c.req.param("id")
+  const validatedBody = c.req.valid("json")
+  const updatedCoinWithDuties = await updateCoin(id, validatedBody)
+
+  return c.json(updatedCoinWithDuties, 200)
 })
 
 export default coinRoutes

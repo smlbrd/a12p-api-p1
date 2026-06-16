@@ -64,8 +64,11 @@ export const CoinWithDutiesSchema = selectCoinSchema.extend({
   duties: z.array(selectDutySchema)
 })
 
+export const patchCoinWithDutiesSchema = insertCoinWithDutiesSchema.partial()
+
 export type Coin = z.infer<typeof selectCoinSchema>
 export type NewCoin = z.infer<typeof insertCoinSchema>
 export type NewCoinWithDuties = z.infer<typeof insertCoinWithDutiesSchema>
 export type Duty = z.infer<typeof selectDutySchema>
 export type CoinWithDuties = z.infer<typeof CoinWithDutiesSchema>
+export type PatchCoinWithDuties = z.infer<typeof patchCoinWithDutiesSchema>

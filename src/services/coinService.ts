@@ -1,11 +1,23 @@
 import { eq } from "drizzle-orm"
 import { db } from "../db/db.ts"
-import { type Coin, coins, coinsToDuties, type CoinWithDuties, type NewCoinWithDuties } from "../db/schema.ts"
+import {
+  type Coin,
+  coins,
+  coinsToDuties,
+  type CoinWithDuties,
+  type NewCoinWithDuties,
+  type PatchCoinWithDuties
+} from "../db/schema.ts"
+
+type TransactionClient = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 export const getAllCoins = (): Promise<Coin[]> => db.select().from(coins)
 
-export async function getCoinWithDuties(coinId: string): Promise<CoinWithDuties | null> {
-  const result = await db.query.coins.findFirst({
+export async function getCoinWithDuties(
+  client: typeof db | TransactionClient,
+  coinId: string
+): Promise<CoinWithDuties | null> {
+  const result = await client.query.coins.findFirst({
     where: eq(coins.id, coinId),
     with: {
       coinsToDuties: {
@@ -35,31 +47,22 @@ export async function createCoin(data: NewCoinWithDuties): Promise<CoinWithDutie
     if (!newCoin) return null
 
     if (dutyIds && dutyIds.length > 0) {
-      const junctionRows = dutyIds.map((dutyId) => ({
-        coinId: newCoin.id,
-        dutyId
-      }))
+      const junctionRows = dutyIds.map((dutyId) => ({ coinId: newCoin.id, dutyId }))
       await tx.insert(coinsToDuties).values(junctionRows)
     }
 
-    const result = await tx.query.coins.findFirst({
-      where: eq(coins.id, newCoin.id),
-      with: {
-        coinsToDuties: {
-          with: {
-            duty: true
-          }
-        }
-      }
-    })
+    return await getCoinWithDuties(tx, newCoin.id)
+  })
+}
 
-    if (!result) return null
+export async function updateCoin(id: string, data: PatchCoinWithDuties): Promise<CoinWithDuties | null> {
+  return await db.transaction(async (tx) => {
+    const { dutyIds, ...coinData } = data
 
-    return {
-      id: result.id,
-      name: result.name,
-      isCompleted: result.isCompleted,
-      duties: result.coinsToDuties.map((cd) => cd.duty)
+    if (Object.keys(coinData).length > 0) {
+      await tx.update(coins).set(coinData).where(eq(coins.id, id))
     }
+
+    return await getCoinWithDuties(tx, id)
   })
 }
