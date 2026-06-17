@@ -23,8 +23,8 @@ This API supports full CRUD (Create, Read, Update, Delete) operations for coins:
 
 ### Prerequisites
 
-Prerequisites
 [Node.js](https://nodejs.org/en) (v24, or use `nvm` with the `.nvmrc` file)
+
 [Docker](https://www.docker.com/)
 
 ### Installation
