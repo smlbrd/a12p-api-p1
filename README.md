@@ -6,7 +6,7 @@ Users can:
 - [x] Fetch an individual coin with linked duties `GET /coins/:id`
 - [x] Add a new coin `POST /coins`
     - [x] Prevent adding a coin with a duplicated name
-- [ ] Update an existing coin `PATCH /coins/:id`
+- [x] Update an existing coin `PATCH /coins/:id`
 - [ ] Delete a coin `DELETE /coins/:id`
 
 Run the test data database container:
