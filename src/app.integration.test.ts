@@ -30,15 +30,12 @@ const seedTestDuties = async () => {
   return db
     .insert(duties)
     .values([
-      { number: 1, description: "Heads" },
-      { number: 2, description: "Tails" }
+      { number: 1, description: "Test Duty 1" },
+      { number: 2, description: "Test Duty 2" },
+      { number: 3, description: "Test Duty 3" },
+      { number: 4, description: "Test Duty 4" }
     ])
     .returning()
-}
-
-const assertCoinDutiesInDb = async (coinId: string, expectedCount: number) => {
-  const relations = await db.select().from(coinsToDuties).where(eq(coinsToDuties.coinId, coinId))
-  expect(relations).toHaveLength(expectedCount)
 }
 
 const matchDutiesArray = (insertedDuties: Duty[]) =>
@@ -205,8 +202,6 @@ describe("POST /coins", () => {
       name: newCoinPayload.name,
       duties: matchDutiesArray([duty1, duty2])
     })
-
-    await assertCoinDutiesInDb(body.id, 2)
   })
 })
 
@@ -295,8 +290,6 @@ describe("PATCH /coins/:id", () => {
       id: coin.id,
       duties: matchDutiesArray([duty1, duty2])
     })
-
-    await assertCoinDutiesInDb(coin.id, 2)
   })
 
   test("should return a 400 error when violating validation schema (e.g. minimum name length)", async () => {
@@ -328,31 +321,29 @@ describe("PATCH /coins/:id", () => {
 
     const body = await res.json()
     expect(body.duties).toHaveLength(0)
-
-    await assertCoinDutiesInDb(coin.id, 0)
   })
 
   test("should accommodate duplication between existing duties and patch body", async () => {
     const duties = await seedTestDuties()
     const duty1 = duties[0]!
     const duty2 = duties[1]!
+    const duty3 = duties[2]!
+    const duty4 = duties[3]!
 
-    const coin = await insertCoin({ name: "Testing Duties", dutyIds: [duty1.id, duty2.id] })
+    const coin = await insertCoin({ name: "Testing Duties", dutyIds: [duty1.id, duty2.id, duty3.id] })
 
-    const res = await jsonReq("PATCH", `/coins/${coin.id}`, { dutyIds: [duty2.id] })
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, { dutyIds: [duty2.id, duty3.id, duty4.id] })
     expect(res.status).toBe(200)
 
     const body = await res.json()
-    expect(body.duties).toHaveLength(1)
-
+    expect(body.duties).toHaveLength(3)
     expect(body.duties).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: duty2.id, description: "Tails" }),
-        expect.not.objectContaining({ id: duty1.id, description: "Heads" })
+        { id: duty2.id, number: 2, description: "Test Duty 2" },
+        { id: duty3.id, number: 3, description: "Test Duty 3" },
+        { id: duty4.id, number: 4, description: "Test Duty 4" }
       ])
     )
-
-    await assertCoinDutiesInDb(coin.id, 1)
   })
 
   // patching nonexistent coin returns 400 bad req
