@@ -55,7 +55,7 @@ export async function createCoin(data: NewCoinWithDuties): Promise<CoinWithDutie
   })
 }
 
-export async function updateCoin(id: string, data: PatchCoinWithDuties): Promise<CoinWithDuties | null> {
+export async function updateCoin(id: string, data: PatchCoinWithDuties): Promise<NewCoinWithDuties | null> {
   return await db.transaction(async (tx) => {
     const { dutyIds, ...coinData } = data
 
@@ -66,8 +66,10 @@ export async function updateCoin(id: string, data: PatchCoinWithDuties): Promise
     if (dutyIds !== undefined) {
       await tx.delete(coinsToDuties).where(eq(coinsToDuties.coinId, id))
 
-      const junctionRows = dutyIds.map((dutyId) => ({ coinId: id, dutyId }))
-      await tx.insert(coinsToDuties).values(junctionRows)
+      if (dutyIds.length > 0) {
+        const junctionRows = dutyIds.map((dutyId) => ({ coinId: id, dutyId }))
+        await tx.insert(coinsToDuties).values(junctionRows)
+      }
     }
 
     return await getCoinWithDuties(tx, id)

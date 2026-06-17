@@ -323,16 +323,37 @@ describe("PATCH /coins/:id", () => {
 
     const coin = await insertCoin({ name: "Testing Duties", dutyIds: [duty1.id, duty2.id] })
 
-    const patchRes = await jsonReq("PATCH", `/coins/${coin.id}`, { duties: [] })
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, { dutyIds: [] })
+    expect(res.status).toBe(200)
 
-    expect(patchRes.status).toBe(200)
-
-    const body = await patchRes.json()
+    const body = await res.json()
     expect(body.duties).toHaveLength(0)
 
     await assertCoinDutiesInDb(coin.id, 0)
   })
-  // gracefully handles duplication (e.g. currently duties 5, 7, 10, patched to 7, 10, 11)
+
+  test("should accommodate duplication between existing duties and patch body", async () => {
+    const duties = await seedTestDuties()
+    const duty1 = duties[0]!
+    const duty2 = duties[1]!
+
+    const coin = await insertCoin({ name: "Testing Duties", dutyIds: [duty1.id, duty2.id] })
+
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, { dutyIds: [duty2.id] })
+    expect(res.status).toBe(200)
+
+    const body = await res.json()
+    expect(body.duties).toHaveLength(1)
+
+    expect(body.duties).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: duty2.id, description: "Tails" }),
+        expect.not.objectContaining({ id: duty1.id, description: "Heads" })
+      ])
+    )
+
+    await assertCoinDutiesInDb(coin.id, 1)
+  })
 
   // patching nonexistent coin returns 400 bad req
   // linking coin to nonexistent duty returns 400 bad req
