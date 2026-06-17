@@ -6,6 +6,9 @@ const isHttpException = (err: unknown): err is HTTPException =>
   err instanceof HTTPException || (err instanceof Error && "status" in err)
 
 export const errorHandler: ErrorHandler = (err, c) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pgCause = (err as any).cause
+
   if (err instanceof HTTPException && err.message === "Malformed JSON in request body") {
     return c.json(
       {
@@ -25,6 +28,10 @@ export const errorHandler: ErrorHandler = (err, c) => {
       },
       400
     )
+  }
+
+  if (pgCause?.code === "23503") {
+    return c.json({ success: false, error: "RESOURCE_NOT_FOUND" }, 404)
   }
 
   if (isHttpException(err)) {

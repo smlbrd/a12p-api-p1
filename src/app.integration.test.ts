@@ -235,6 +235,12 @@ test("should return a 400 error for malformed JSON request body", async () => {
 })
 
 describe("PATCH /coins/:id", () => {
+  beforeEach(async () => {
+    await db.delete(coinsToDuties)
+    await db.delete(coins)
+    await db.delete(duties)
+  })
+
   const insertCoin = async (values: NewCoinWithDuties) => {
     const [row] = await db.insert(coins).values(values).returning()
     return row!
@@ -346,7 +352,7 @@ describe("PATCH /coins/:id", () => {
     )
   })
 
-  test("should return a 404 error when patching a non-existent coin", async () => {
+  test("should return a 404 error when updating a non-existent coin", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000"
     const updateBody = { name: "Imaginary Coin" }
 
@@ -356,5 +362,18 @@ describe("PATCH /coins/:id", () => {
     const body = await res.json()
     expect(body).toEqual({ success: false, error: "COIN_NOT_FOUND" })
   })
-  // linking coin to nonexistent duty returns 400 bad req
+
+  test("should return a 404 error when updating a coin with a non-existent duty", async () => {
+    const duties = await seedTestDuties()
+    const duty1 = duties[0]!
+    const duty2 = duties[1]!
+
+    const coin = await insertCoin({ name: "Testing Duties", dutyIds: [duty1.id, duty2.id] })
+
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, { dutyIds: ["00000000-0000-0000-0000-000000000000"] })
+    expect(res.status).toBe(404)
+
+    const body = await res.json()
+    expect(body).toEqual({ success: false, error: "RESOURCE_NOT_FOUND" })
+  })
 })
