@@ -240,7 +240,7 @@ test("should return a 400 error for malformed JSON request body", async () => {
 })
 
 describe("PATCH /coins/:id", () => {
-  const insertCoin = async (values: NewCoin) => {
+  const insertCoin = async (values: NewCoinWithDuties) => {
     const [row] = await db.insert(coins).values(values).returning()
     return row!
   }
@@ -316,7 +316,22 @@ describe("PATCH /coins/:id", () => {
     )
   })
 
-  // duties: [] should clear linked duties for a coin
+  test("should clear duties linked to an existing coin when receiving [] as duties patch", async () => {
+    const duties = await seedTestDuties()
+    const duty1 = duties[0]!
+    const duty2 = duties[1]!
+
+    const coin = await insertCoin({ name: "Testing Duties", dutyIds: [duty1.id, duty2.id] })
+
+    const patchRes = await jsonReq("PATCH", `/coins/${coin.id}`, { duties: [] })
+
+    expect(patchRes.status).toBe(200)
+
+    const body = await patchRes.json()
+    expect(body.duties).toHaveLength(0)
+
+    await assertCoinDutiesInDb(coin.id, 0)
+  })
   // gracefully handles duplication (e.g. currently duties 5, 7, 10, patched to 7, 10, 11)
 
   // patching nonexistent coin returns 400 bad req
