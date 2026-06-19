@@ -1,7 +1,7 @@
 {
   "name": "a12p-api-p1",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
     "build": "esbuild src/lambda.ts --bundle --platform=node --target=node24 --external:pg-native --outfile=dist/index.js",
     "coverage": "vitest run --coverage",
