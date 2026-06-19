@@ -35,8 +35,8 @@ jobs:
           sleep 1
           done
 
-      - name: Run Database Migrations
-        run: npx drizzle-kit migrate
+      - name: Sync Database Schema
+        run: npx drizzle-kit push
         env:
           DATABASE_URL: ${{ env.TEST_DB_CONTAINER }}
 
