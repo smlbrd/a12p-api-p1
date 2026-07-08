@@ -37,11 +37,10 @@ jobs:
 
       - name: Set up Database (Migrate & Seed)
         run: |
-          npx drizzle-kit migrate
+          npx drizzle-kit push
           npx tsx scripts/run-seed.ts
         env:
           DATABASE_URL: ${{ env.TEST_DB_CONTAINER }}
-          NODE_ENV: test
 
       - name: Check code coverage
         run: npx vitest run --coverage
