@@ -35,10 +35,13 @@ jobs:
           sleep 1
           done
 
-      - name: Sync Database Schema
-        run: npx drizzle-kit push
+      - name: Set up Database (Migrate & Seed)
+        run: |
+          npx drizzle-kit migrate
+          npx tsx scripts/run-seed.ts
         env:
           DATABASE_URL: ${{ env.TEST_DB_CONTAINER }}
+          NODE_ENV: test
 
       - name: Run tests
         run: npx vitest run
