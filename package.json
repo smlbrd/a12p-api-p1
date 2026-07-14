@@ -7,13 +7,14 @@
     "dev": "tsx watch --env-file=.env src/server.ts",
     "lint": "eslint .",
     "prepare": "husky",
-    "db:migrate:local": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
     "db:seed:local": "tsx --env-file=.env scripts/run-seed.ts",
     "db:seed:prod": "tsx --env-file=.env.production scripts/run-seed.ts",
-    "db:setup:local": "drizzle-kit migrate && tsx --env-file=.env scripts/run-seed.ts",
+    "db:setup:local": "npm run db:push && npm run db:seed:local",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
-    "up": "docker compose up -d"
+    "up": "docker compose up -d",
+    "down": "docker compose down"
   },
   "lint-staged": {
     "*.{ts,js}": [
