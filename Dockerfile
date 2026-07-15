@@ -26,4 +26,4 @@ RUN npm ci --omit=dev --ignore-scripts
 COPY --from=builder /app/dist/ ./
 
 # Point AWS Lambda directly to index.handler (since index.js is now at the root)
-CMD ["index.handler"]
+CMD ["lambda.handler"]
