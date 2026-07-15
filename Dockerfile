@@ -16,14 +16,14 @@ RUN npm run build
 FROM public.ecr.aws/lambda/nodejs:24
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-# Copy package configurations to install production dependencies
+# Copy package configurations
 COPY package*.json ./
 
 # Install ONLY production dependencies and ignore lifecycle scripts (like Husky)
 RUN npm ci --omit=dev --ignore-scripts
 
-# Copy the built server code AND the built static assets from the builder stage
-COPY --from=builder /app/dist ./dist
+# Copy the CONTENTS of /app/dist directly to the root of /var/task (note the trailing slash)
+COPY --from=builder /app/dist/ ./
 
-# Point AWS Lambda to your entry handler
-CMD ["dist/index.handler"]
+# Point AWS Lambda directly to index.handler (since index.js is now at the root)
+CMD ["index.handler"]
