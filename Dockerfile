@@ -25,5 +25,5 @@ RUN npm ci --omit=dev --ignore-scripts
 # Copy the CONTENTS of /app/dist directly to the root of /var/task (note the trailing slash)
 COPY --from=builder /app/dist/ ./
 
-# Point AWS Lambda directly to index.handler (since index.js is now at the root)
-CMD ["index.handler"]
+# Point AWS Lambda directly to lambda.handler
+CMD ["lambda.handler"]
