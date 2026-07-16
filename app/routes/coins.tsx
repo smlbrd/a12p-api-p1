@@ -1,8 +1,9 @@
 import { createRoute } from "honox/factory"
-import { getAllCoins } from "../services/coinService.ts"
+import { db } from "../db/db.ts"
+import { getAllCoinsWithDuties } from "../services/coinService.ts"
 
 export default createRoute(async (c) => {
-  const coins = await getAllCoins()
+  const coins = await getAllCoinsWithDuties(db)
 
   return c.render(
     <div className="space-y-6">
@@ -15,17 +16,23 @@ export default createRoute(async (c) => {
       ) : (
         <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden shadow-sm">
           {coins.map((coin) => (
-            <div key={coin.id} data-testid="coin-row" className="p-6">
-              <div className="flex flex-col justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div>
-                    <h2 className="text-base font-semibold">
-                      <a href={`/coins/${coin.id}`}>{coin.name}</a>
-                    </h2>
-                  </div>
-                </div>
+            <section key={coin.id} role="group" aria-label={coin.name} className="p-6">
+              <div className="flex flex-col gap-4">
+                <h2 className="text-base font-semibold">
+                  <a href={`/coins/${coin.id}`}>{coin.name}</a>
+                </h2>
+
+                {coin.duties.length > 0 && (
+                  <ul className="space-y-2 list-disc pl-5 text-sm text-slate-600 truncate">
+                    {coin.duties.map((duty) => (
+                      <li key={duty.id}>
+                        Duty {duty.number} - {duty.description}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            </div>
+            </section>
           ))}
         </div>
       )}
