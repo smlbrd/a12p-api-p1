@@ -3,23 +3,26 @@ import { db } from "../db/db.ts"
 import { getAllCoinsWithDuties } from "../services/coinService.ts"
 
 export default createRoute(async (c) => {
+  interface GroupedDuty {
+    id: string
+    number: number | string
+    description: string
+    coins: { id: string; name: string }[]
+  }
+
   const coins = await getAllCoinsWithDuties(db)
+  const dutiesMap = new Map<number | string, GroupedDuty>()
 
-  const dutiesMap = new Map<
-    number | string,
-    { id: string; number: number | string; coins: { id: string; name: string }[] }
-  >()
+  for (const { id: coinId, name: coinName, duties: coinDuties } of coins) {
+    for (const { id, number, description } of coinDuties) {
+      let entry = dutiesMap.get(number)
 
-  for (const coin of coins) {
-    for (const duty of coin.duties) {
-      if (!dutiesMap.has(duty.number)) {
-        dutiesMap.set(duty.number, {
-          id: duty.id,
-          number: duty.number,
-          coins: []
-        })
+      if (!entry) {
+        entry = { id, number, description, coins: [] }
+        dutiesMap.set(number, entry)
       }
-      dutiesMap.get(duty.number)!.coins.push({ id: coin.id, name: coin.name })
+
+      entry.coins.push({ id: coinId, name: coinName })
     }
   }
 
@@ -50,6 +53,7 @@ export default createRoute(async (c) => {
                 <h2 role="heading" className="text-sm font-bold text-black font-sans">
                   Duty {duty.number}
                 </h2>
+                <p className="text-gray-700 text-xs py-4 font-mono">{duty.description}</p>
 
                 {duty.coins.length > 0 && (
                   <nav aria-label={`Coins associated with Duty ${duty.number}`}>
