@@ -7,26 +7,36 @@ export default createRoute(async (c) => {
 
   return c.render(
     <div className="space-y-6">
-      <div className="border-b border-slate-200 pb-5">
-        <h1>Coins Dashboard</h1>
+      <div className="border-b border-gray-600 pb-5">
+        <h1 className="text-lg font-bold text-[#003366] font-sans">Coins Dashboard</h1>
       </div>
 
       {coins.length === 0 ? (
-        <p className="text-slate-500 text-sm py-4">No coins available.</p>
+        <p className="text-gray-700 text-xs py-4 font-mono">No coins available.</p>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden shadow-sm">
+        <div className="bg-white border border-gray-600 divide-y divide-gray-400 overflow-hidden">
           {coins.map((coin) => (
-            <section key={coin.id} role="group" aria-label={coin.name} className="p-6">
+            <section
+              key={coin.id}
+              role="group"
+              aria-label={coin.name}
+              className="p-4 bg-white hover:bg-[#FFFFE1] transition-colors"
+            >
               <div className="flex flex-col gap-4">
-                <h2 className="text-base font-semibold">
-                  <a href={`/coins/${coin.id}`}>{coin.name}</a>
+                <h2 className="text-sm font-bold text-black font-sans">
+                  <a href={`/coins/${coin.id}`} className="text-blue-800 underline hover:text-red-700 cursor-pointer">
+                    {coin.name}
+                  </a>
                 </h2>
 
                 {coin.duties.length > 0 && (
-                  <ul className="space-y-2 list-disc pl-5 text-sm text-slate-600 truncate">
+                  <ul className="flex flex-wrap gap-2 text-xs font-mono font-bold cursor-pointer">
                     {coin.duties.map((duty) => (
-                      <li key={duty.id}>
-                        Duty {duty.number} - {duty.description}
+                      <li
+                        key={duty.id}
+                        className="bg-blue-100 text-blue-900 px-2.5 py-1 border border-blue-200 transition-colors hover:bg-blue-200"
+                      >
+                        Duty {duty.number}
                       </li>
                     ))}
                   </ul>
