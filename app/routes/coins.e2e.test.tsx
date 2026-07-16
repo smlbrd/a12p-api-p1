@@ -33,6 +33,6 @@ test.describe("Coins Dashboard E2E", () => {
     const dutyItems = coinGroup.getByRole("listitem")
 
     await expect(dutyItems).toHaveCount(3)
-    await expect(dutyItems.first()).toContainText("Duty 5 - Build and operate a Continuous Integration (CI) capability")
+    await expect(dutyItems.first()).toHaveText("Duty 5")
   })
 })
